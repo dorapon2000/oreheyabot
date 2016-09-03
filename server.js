@@ -90,8 +90,8 @@ bot.beginDialogAction('help', '/help', { matches: /^help/i });
 //=========================================================
 
 bot.dialog('/', new builder.IntentDialog()
-    .matches(/^[tundere|つんでれ|ツンデレ]/i, '/tundere')
-    .matches(/^[hello|ハロー|こんにちわ]$/i, '/hello')
+    .matches(/^(tundere|つんでれ|ツンデレ)/i, '/tundere')
+    .matches(/^(hello|ハロー|こんにちわ)$/i, '/hello')
     .onDefault(builder.DialogAction.send("I'm sorry. I didn't understand."))
 );
 
