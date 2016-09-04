@@ -115,12 +115,12 @@ bot.dialog('/tundere', [
 
         request.get(options, function (error, response, body) {
             if (!error && response.statusCode == 200) {
-                session.send("判定 : %s\nツンデレ度 : %f",body.status, body.info.probability_class_1[0]);
+                var judge = body.status ? "ツンデレ" : "ツンデレじゃない";
+                session.send("判定 : %s",judge);
             } else {
                 console.log('error: '+ response.statusCode);
-                session.send("%s",body);
             }
+            session.endDialog();
         });
-        //session.endDialog();
     }
 ]);
