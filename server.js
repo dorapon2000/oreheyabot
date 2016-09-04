@@ -1,6 +1,6 @@
 var restify = require('restify');
 var builder = require('botbuilder');
-var http = require('http');
+var request = require('request');
 
 //=========================================================
 // Bot Setup
@@ -90,51 +90,37 @@ bot.beginDialogAction('help', '/help', { matches: /^help/i });
 //=========================================================
 
 bot.dialog('/', new builder.IntentDialog()
-    .matches(/^(tundere|つんでれ|ツンデレ)/i, '/tundere')
-    .matches(/^(hello|ハロー|こんにちわ)$/i, '/hello')
-    .onDefault(builder.DialogAction.send("I'm sorry. I didn't understand."))
+    .matches(/^(tundere|ツンデレ|つんでれ)$/i, '/tundere')
+    .matches(/^(hello|ハロー|こんにちわ)/i, '/hello')
 );
 
 
 bot.dialog('/hello',
     function (session) {
         session.send("こんちゃ!!");
+        session.endDialog();
     }
 );
 
 bot.dialog('/tundere', [
     function (session) {
-        builder.Prompts.text(session, "文を書いてね！");
+        builder.Prompts.text(session, "[ツンデレ判定] 文を書いてね！");
     },
     function (session, results) {
-        session.userData.name = results.response;
-        var tundereApiUrl = "http://coco.user.surume.tk/api/v1/is_tundere?";
-        result = JSON.parse(httpRequest(tundereApiUrl + results.response));
-        sessoin.send("ツンデレ度 : " + result.probability_class_1);
-        builder.Prompts.number(session, "" + results.response + "");
+        var options = {
+            url: 'http://coco.user.surume.tk/api/v1/is_tundere',
+            qs: {text: results.response},
+            json: true
+        };
+
+        request.get(options, function (error, response, body) {
+            if (!error && response.statusCode == 200) {
+                session.send("判定 : %s\nツンデレ度 : %f",body.status, body.info.probability_class_1[0]);
+            } else {
+                console.log('error: '+ response.statusCode);
+                session.send("%s",body);
+            }
+        });
+        //session.endDialog();
     }
 ]);
-
-function httpRequest(url){
-    var req = http.get(targetUrl, function(res) {
-      console.log('get response');
-      res.setEncoding('utf8');
-      res.on('data', function(str) {
-        console.log(str);
-      });
-    });
-    req.setTimeout(1000);
-
-    req.on('timeout', function() {
-      console.log('request timed out');
-      req.abort();
-    });
-
-    res.on('end', function(res) {
-        return res;
-    });
-
-    req.on('error', function(err) {
-      console.log("Error: " + err.code + ", " + err.message);
-    });
-}
