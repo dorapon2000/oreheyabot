@@ -139,7 +139,7 @@ bot.dialog('bmi',[
         var bmi = session.userData.weight / Math.pow(session.userData.height/100.0, 2);
         var best_weight = Math.pow(session.userData.height/100.0, 2) * 22;
         var advice = (function() {
-            if (bmi > 16) return "痩せすぎだよ";
+            if (bmi < 16) return "痩せすぎだよ";
             else if (16 <= bmi && bmi < 17) return "痩せてるね！";
             else if (17 <= bmi && bmi < 18.5) return "痩せ気味かな";
             else if (18.5 <= bmi && bmi < 25) return "普通体重だ！やったね！";
@@ -148,7 +148,7 @@ bot.dialog('bmi',[
             else if (35 <= bmi && bmi < 40) return "治療対象だよ - 肥満(2度)";
             else return "治療対象だよ - 肥満(3度)";
         })();
-        session.send("[BMI]\nBMIは %.1f\n適正体重は %.1f\n%s", bmi, best_weight ,advice);
+        session.send("[BMI]\n\nBMIは %.1f\n\n適正体重は %.1f\n\n%s", bmi, best_weight ,advice);
         session.endDialog();
     }
 ]);
