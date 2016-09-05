@@ -92,7 +92,8 @@ bot.beginDialogAction('help', '/help', { matches: /^help/i });
 bot.dialog('/', new builder.IntentDialog()
     .matches(/^(tundere|ツンデレ|つんでれ)$/i, '/tundere')
     .matches(/^(hello|ハロー|こんにちわ)/i, '/hello')
-    .matches(/^bmi$/i,'bmi')
+    .matches(/^(weather|tenki|天気|てんき)$/i, '/weather')
+    .matches(/^bmi$/i,'/bmi')
 );
 
 
@@ -120,13 +121,14 @@ bot.dialog('/tundere', [
                 session.send("判定 : %s",judge);
             } else {
                 console.log('error: '+ response.statusCode);
+                session.send("error: %d", response.statusCode);
             }
             session.endDialog();
         });
     }
 ]);
 
-bot.dialog('bmi',[
+bot.dialog('/bmi',[
     function (session) {
         builder.Prompts.text(session, "[BMI] 身長(cm)を入力してね！");
     },
@@ -144,11 +146,64 @@ bot.dialog('bmi',[
             else if (17 <= bmi && bmi < 18.5) return "痩せ気味かな";
             else if (18.5 <= bmi && bmi < 25) return "普通体重だ！やったね！";
             else if (25 <= bmi && bmi < 30) return "太り気味かな";
-            else if (30 <= bmi && bmi < 35) return "治療対象だよ - 肥満(1度)";
+            else if (30 <= bmi && bmi < 35) return "太り過ぎだよ - 肥満(1度)";
             else if (35 <= bmi && bmi < 40) return "治療対象だよ - 肥満(2度)";
             else return "治療対象だよ - 肥満(3度)";
         })();
         session.send("[BMI]\n\nBMIは %.1f\n\n適正体重は %.1f\n\n%s", bmi, best_weight ,advice);
         session.endDialog();
     }
+]);
+
+bot.dialog('/weather', [
+    function (session) {
+        builder.Prompts.text(session, "[天気予報] 地域を選んでね\n\n静岡県 = {浜松,静岡}\n\n愛知 = {名古屋}\n\n茨城 = {土浦}\n\n東京 = {東京}");
+    },
+    function (session, results) {
+        var locationTable = {'浜松': '220040',
+                             'hamaamtu': '220040',
+                             '静岡': '220010',
+                             'sizuoka': '220010',
+                             '名古屋': '230010',
+                             'nagoya': '230010',
+                             '土浦': '080020',
+                             'tutiura': '080020',
+                             '東京': '130010',
+                             'toukyou': '130010'};
+        var options = {
+            url: 'http://weather.livedoor.com/forecast/webservice/json/v1',
+            qs: {city: locationTable[results.response]},
+            json: true
+        };
+
+        request.get(options, function (error, response, body) {
+            if (!error && response.statusCode == 200) {
+                var publicOclock = (body.publicTime).slice(11,13);
+                var publicMonth = (body.publicTime).slice(5,7);
+                var publicDay = (body.publicTime).slice(8,10);
+                session.send("[天気予報]\n\n" +
+                             "%s (%d/%d %d時 時点)\n\n" + // タイトル (予報時刻)
+                             "%s\n\n" + // リンクURL
+                             "%s : %s\n\n" + // 今日 : 晴れ
+                             "%s : %s\n\n" + // 明日 : 雨
+                             "---\n\n" +
+                             "%s",// copyright
+                             body.title,
+                             publicMonth,
+                             publicDay,
+                             publicOclock,
+                             body.link,
+                             body.forecasts[0].dateLabel,
+                             body.forecasts[0].telop,
+                             body.forecasts[1].dateLabel,
+                             body.forecasts[1].telop,
+                             body.copyright.title);
+            } else {
+                console.log('error: '+ response.statusCode);
+                sessino.send("status: %d",response.statusCode);
+            }
+            session.endDialog();
+        });
+    }
+
 ]);
