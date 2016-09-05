@@ -92,6 +92,7 @@ bot.beginDialogAction('help', '/help', { matches: /^help/i });
 bot.dialog('/', new builder.IntentDialog()
     .matches(/^(tundere|ツンデレ|つんでれ)$/i, '/tundere')
     .matches(/^(hello|ハロー|こんにちわ)/i, '/hello')
+    .matches(/^bmi$/i,'bmi')
 );
 
 
@@ -122,5 +123,32 @@ bot.dialog('/tundere', [
             }
             session.endDialog();
         });
+    }
+]);
+
+bot.dialog('bmi',[
+    function (session) {
+        builder.Prompts.text(session, "[BMI] 身長(cm)を入力してね！");
+    },
+    function (session, results) {
+        session.userData.height = results.response;
+        builder.Prompts.text(session, "[BMI] 体重(kg)を入力してね！");
+    },
+    function (session, results) {
+        session.userData.weight = results.response;
+        var bmi = session.userData.weight / Math.pow(session.userData.height/100.0, 2);
+        var best_weight = Math.pow(session.userData.height/100.0, 2) * 22;
+        var advice = (function() {
+            if (bmi > 16) return "痩せすぎだよ";
+            else if (16 <= bmi && bmi < 17) return "痩せてるね！";
+            else if (17 <= bmi && bmi < 18.5) return "痩せ気味かな";
+            else if (18.5 <= bmi && bmi < 25) return "普通体重だ！やったね！";
+            else if (25 <= bmi && bmi < 30) return "太り気味かな";
+            else if (30 <= bmi && bmi < 35) return "治療対象だよ - 肥満(1度)";
+            else if (35 <= bmi && bmi < 40) return "治療対象だよ - 肥満(2度)";
+            else return "治療対象だよ - 肥満(3度)";
+        })();
+        session.send("[BMI]\nBMIは %.1f\n適正体重は %.1f\n%s", bmi, best_weight ,advice);
+        session.endDialog();
     }
 ]);
