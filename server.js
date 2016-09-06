@@ -96,6 +96,7 @@ bot.dialog('/', new builder.IntentDialog()
     .matches(/^(weather|tenki|天気|てんき)$/i, '/weather')
     .matches(/^bmi$/i,'/bmi')
     .matches(/^(karapaia|カラパイア|からぱいあ)$/i, '/karapaia')
+    .matches(/^(zaeega|ザイーガ|ザイーガ)$/i, '/zaeega')
 );
 
 
@@ -159,19 +160,26 @@ bot.dialog('/bmi',[
 
 bot.dialog('/weather', [
     function (session) {
-        builder.Prompts.text(session, "[天気予報] 地域を選んでね\n\n静岡県 = {浜松,静岡}\n\n愛知 = {名古屋}\n\n茨城 = {土浦}\n\n東京 = {東京}");
+        builder.Prompts.text(session, "[天気予報] 地域を選んでね\n\n" +
+                                      "静岡 = {浜松, 静岡}\n\n" +
+                                      "愛知 = {名古屋}\n\n" +
+                                      "茨城 = {土浦}\n\n" +
+                                      "東京 = {東京}"
+                            );
     },
     function (session, results) {
-        var locationTable = {'浜松': '220040',
-                             'hamaamtu': '220040',
-                             '静岡': '220010',
-                             'sizuoka': '220010',
-                             '名古屋': '230010',
-                             'nagoya': '230010',
-                             '土浦': '080020',
-                             'tutiura': '080020',
-                             '東京': '130010',
-                             'toukyou': '130010'};
+        var locationTable = {
+            '浜松': '220040',
+            'hamaamtu': '220040',
+            '静岡': '220010',
+            'sizuoka': '220010',
+            '名古屋': '230010',
+            'nagoya': '230010',
+            '土浦': '080020',
+            'tutiura': '080020',
+            '東京': '130010',
+            'toukyou': '130010'
+        };
         var options = {
             url: 'http://weather.livedoor.com/forecast/webservice/json/v1',
             qs: {city: locationTable[results.response]},
@@ -211,13 +219,80 @@ bot.dialog('/weather', [
 ]);
 
 bot.dialog('/karapaia', function (session){
-    var req = request('http://karapaia.livedoor.biz/index.rdf');
+    rssUrl = "http://karapaia.livedoor.biz/index.rdf";
+
+    fetch_rss(rssUrl,
+              function (dateStr){
+                  var monthTable = {
+                      'Jan' : '01',
+                      'Feb' : '02',
+                      'Mar' : '03',
+                      'Apr' : '04',
+                      'May' : '05',
+                      'Jun' : '06',
+                      'Jul' : '07',
+                      'Aug' : '08',
+                      'Sep' : '09',
+                      'Oct' : '10',
+                      'Nov' : '11',
+                      'Dec' : '12'
+                  };
+                  var month = monthTable[dateStr.slice(4,7)];
+                  var day = dateStr.slice(8,10);
+                  var oclock = dateStr.slice(16,18);
+                  var minutes = dateStr.slice(19,21);
+                  return month + "/" + day + " " + oclock + ":" + minutes;
+              },
+              function (text) {
+                  session.send(text);
+              }
+    );
+
+    session.endDialog();
+});
+
+bot.dialog('/zaeega', function (session){
+    rssUrl = "http://www.zaeega.com/index.rdf";
+
+    fetch_rss(rssUrl,
+              function (dateStr){
+                  var monthTable = {
+                      'Jan' : '01',
+                      'Feb' : '02',
+                      'Mar' : '03',
+                      'Apr' : '04',
+                      'May' : '05',
+                      'Jun' : '06',
+                      'Jul' : '07',
+                      'Aug' : '08',
+                      'Sep' : '09',
+                      'Oct' : '10',
+                      'Nov' : '11',
+                      'Dec' : '12'
+                  };
+                  var month = monthTable[dateStr.slice(4,7)];
+                  var day = dateStr.slice(8,10);
+                  var oclock = dateStr.slice(16,18);
+                  var minutes = dateStr.slice(19,21);
+                  return month + "/" + day + " " + oclock + ":" + minutes;
+              },
+              function (text) {
+                  session.send(text);
+              }
+    );
+
+    session.endDialog();
+});
+
+function fetch_rss(rssUrl, parseDate, callback){
+    var req = request(rssUrl);
     var feedparser = new FeedParser();
+    var meta;
     var articleList = [];
 
     req.on('error', function (error) {
         // リクエストエラー処理
-        session.send("[カラパイア] HTTPリクエストエラー。管理者に連絡してね。");
+        session.send("[サイト更新情報] HTTPリクエストエラー。管理者に連絡してね。");
     });
     req.on('response', function (res) {
         var stream = this;
@@ -229,54 +304,30 @@ bot.dialog('/karapaia', function (session){
 
     feedparser.on('error', function(error) {
         // 通常のエラー処理
-        session.send("[カラパイア] RSSパースエラー。管理者に連絡してね。");
+        session.send("[サイト更新情報] RSSパースエラー。管理者に連絡してね。");
         console.log(error);
     });
     feedparser.on('readable', function() {
         // 処理ロジックを書く
         // metaプロパティはfeedeparserインスタンスのコンテキストに常に置き換える
         var stream = this;
-        var meta = this.meta;
+        meta = this.meta;
         var item;
         while (null !== (item = stream.read())){
             articleList.push({'title': item.title, 'pubdate': item.pubdate, 'link': item.link});
         }
     });
     feedparser.on('end', function(){
-        var text = "[カラパイア]\n\n" +
+        var text = "[更新情報] " + meta.title + "\n\n" +
                     (function(){
-                    var articles = "";
-                    for (var i=0; i<Math.min(5,articleList.length); i++){
-                        articles += "[" + parseDate(articleList[i].pubdate + "") +"] " + articleList[i].title + "\n\n" +
-                        articleList[i].link + "\n\n" +
-                        "--\n\n";
-                    }
-                    return articles;
-                }());
-        session.send(text);
+                        var articles = "";
+                        for (var i = 0; i < Math.min(5, articleList.length); i++){
+                            articles += "[" + parseDate(articleList[i].pubdate + "") +"] " + articleList[i].title + "\n\n" +
+                            articleList[i].link + "\n\n" +
+                            "--\n\n";
+                        }
+                        return articles;
+                    }());
+        callback(text);
     });
-
-    session.endDialog();
-
-    function parseDate(dateStr){
-        var monthTable = {
-            'Jan' : '1',
-            'Feb' : '2',
-            'Mar' : '3',
-            'Apr' : '4',
-            'May' : '5',
-            'Jun' : '6',
-            'Jul' : '7',
-            'Aug' : '8',
-            'Sep' : '9',
-            'Oct' : '10',
-            'Nov' : '11',
-            'Dec' : '12'
-        };
-        var month = monthTable[dateStr.slice(4,7)];
-        var day = dateStr.slice(8,10);
-        var oclock = dateStr.slice(16,18);
-        var minutes = dateStr.slice(19,21);
-        return month + "/" + day + " " + oclock + ":" + minutes;
-    }
-});
+}
