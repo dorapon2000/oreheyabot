@@ -10,6 +10,7 @@
   "license": "ISC",
   "dependencies": {
     "botbuilder": "^3.2.3",
+    "feedparser": "^1.1.4",
     "restify": "^4.1.1"
   }
 }
