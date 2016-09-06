@@ -247,7 +247,7 @@ bot.dialog('/karapaia', function (session){
                     (function(){
                     var articles = "";
                     for (var i=0; i<Math.min(5,articleList.length); i++){
-                        articles += "[" + parseDate(articleList[i].pubdate + "") +"]" + articleList[i].title + "\n\n" +
+                        articles += "[" + parseDate(articleList[i].pubdate + "") +"] " + articleList[i].title + "\n\n" +
                         articleList[i].link + "\n\n" +
                         "--\n\n";
                     }
