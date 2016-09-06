@@ -160,13 +160,12 @@ bot.dialog('/bmi',[
 
 bot.dialog('/weather', [
     function (session) {
-        // builder.Prompts.text(session, "[天気予報] 地域を選んでね\n\n" +
-        //                               "静岡 = {浜松, 静岡}\n\n" +
-        //                               "愛知 = {名古屋}\n\n" +
-        //                               "茨城 = {土浦}\n\n" +
-        //                               "東京 = {東京}"
-        //                     );
-        builder.Prompts.choice(session, "[天気予報] 地域を選んでね", ["浜松", "静岡", "名古屋", "土浦", "東京"]);
+        builder.Prompts.text(session, "[天気予報] 地域を選んでね\n\n" +
+                                      "静岡 = {浜松, 静岡}\n\n" +
+                                      "愛知 = {名古屋}\n\n" +
+                                      "茨城 = {土浦}\n\n" +
+                                      "東京 = {東京}"
+                            );
     },
     function (session, results) {
         var locationTable = {
@@ -183,7 +182,7 @@ bot.dialog('/weather', [
         };
         var options = {
             url: 'http://weather.livedoor.com/forecast/webservice/json/v1',
-            qs: {city: locationTable[builder.ListStyle[results.response.entity]]},
+            qs: {city: locationTable[results.response]},
             json: true
         };
 
