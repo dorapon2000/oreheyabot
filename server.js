@@ -35,7 +35,7 @@ bot.on('conversationUpdate', function (message) {
                 if (identity.id === message.address.bot.id) {
                     var reply = new builder.Message()
                             .address(message.address)
-                            .text("Hello everyone!");
+                            .text('Hello everyone!');
                     bot.send(reply);
                 }
             });
@@ -47,7 +47,7 @@ bot.on('conversationUpdate', function (message) {
                 if (identity.id === message.address.bot.id) {
                     var reply = new builder.Message()
                         .address(message.address)
-                        .text("Goodbye");
+                        .text('Goodbye');
                     bot.send(reply);
                 }
             });
@@ -60,7 +60,7 @@ bot.on('contactRelationUpdate', function (message) {
         var name = message.user ? message.user.name : null;
         var reply = new builder.Message()
                 .address(message.address)
-                .text("Hello %s... Thanks for adding me. Say 'hello' to see some great demos.", name || 'there');
+                .text('Hello %s... Thanks for adding me. Say "hello" to see some great demos.', name || 'there');
         bot.send(reply);
     } else {
         // delete their data
@@ -102,14 +102,14 @@ bot.dialog('/', new builder.IntentDialog()
 
 bot.dialog('/hello',
     function (session) {
-        session.send("こんちゃ!!");
+        session.send('こんちゃ!!');
         session.endDialog();
     }
 );
 
 bot.dialog('/tundere', [
     function (session) {
-        builder.Prompts.text(session, "[ツンデレ判定] 文を書いてね！");
+        builder.Prompts.text(session, '[ツンデレ判定] 文を書いてね！');
     },
     function (session, results) {
         var options = {
@@ -119,12 +119,12 @@ bot.dialog('/tundere', [
         };
 
         request.get(options, function (error, response, body) {
-            if (!error && response.statusCode == 200) {
-                var judge = body.status ? "ツンデレ" : "ツンデレじゃない";
-                session.send("判定 : %s",judge);
+            if (!error && response.statusCode === 200) {
+                var judge = body.status ? 'ツンデレ' : 'ツンデレじゃない';
+                session.send('判定 : %s',judge);
             } else {
                 console.log('error: '+ response.statusCode);
-                session.send("error: %d", response.statusCode);
+                session.send('error: %d', response.statusCode);
             }
             session.endDialog();
         });
@@ -133,38 +133,38 @@ bot.dialog('/tundere', [
 
 bot.dialog('/bmi',[
     function (session) {
-        builder.Prompts.text(session, "[BMI] 身長(cm)を入力してね！");
+        builder.Prompts.text(session, '[BMI] 身長(cm)を入力してね！');
     },
     function (session, results) {
         session.userData.height = results.response;
-        builder.Prompts.text(session, "[BMI] 体重(kg)を入力してね！");
+        builder.Prompts.text(session, '[BMI] 体重(kg)を入力してね！');
     },
     function (session, results) {
         session.userData.weight = results.response;
         var bmi = session.userData.weight / Math.pow(session.userData.height/100.0, 2);
         var best_weight = Math.pow(session.userData.height/100.0, 2) * 22;
         var advice = (function() {
-            if (bmi < 16) return "痩せすぎだよ";
-            else if (16 <= bmi && bmi < 17) return "痩せてるね！";
-            else if (17 <= bmi && bmi < 18.5) return "痩せ気味かな";
-            else if (18.5 <= bmi && bmi < 25) return "普通体重だ！やったね！";
-            else if (25 <= bmi && bmi < 30) return "太り気味かな";
-            else if (30 <= bmi && bmi < 35) return "太り過ぎだよ - 肥満(1度)";
-            else if (35 <= bmi && bmi < 40) return "治療対象だよ - 肥満(2度)";
-            else return "治療対象だよ - 肥満(3度)";
+            if (bmi < 16) return '痩せすぎだよ';
+            else if (16 <= bmi && bmi < 17) return '痩せてるね！';
+            else if (17 <= bmi && bmi < 18.5) return '痩せ気味かな';
+            else if (18.5 <= bmi && bmi < 25) return '普通体重だ！やったね！';
+            else if (25 <= bmi && bmi < 30) return '太り気味かな';
+            else if (30 <= bmi && bmi < 35) return '太り過ぎだよ - 肥満(1度)';
+            else if (35 <= bmi && bmi < 40) return '治療対象だよ - 肥満(2度)';
+            else return '治療対象だよ - 肥満(3度)';
         })();
-        session.send("[BMI]\n\nBMIは %.1f\n\n適正体重は %.1f\n\n%s", bmi, best_weight ,advice);
+        session.send('[BMI]\n\nBMIは %.1f\n\n適正体重は %.1f\n\n%s', bmi, best_weight ,advice);
         session.endDialog();
     }
 ]);
 
 bot.dialog('/weather', [
     function (session) {
-        builder.Prompts.text(session, "[天気予報] 地域を選んでね\n\n" +
-                                      "静岡 = {浜松, 静岡}\n\n" +
-                                      "愛知 = {名古屋}\n\n" +
-                                      "茨城 = {土浦}\n\n" +
-                                      "東京 = {東京}"
+        builder.Prompts.text(session, '[天気予報] 地域を選んでね\n\n' +
+                                      '静岡 = {浜松, 静岡}\n\n' +
+                                      '愛知 = {名古屋}\n\n' +
+                                      '茨城 = {土浦}\n\n' +
+                                      '東京 = {東京}'
                             );
     },
     function (session, results) {
@@ -187,17 +187,17 @@ bot.dialog('/weather', [
         };
 
         request.get(options, function (error, response, body) {
-            if (!error && response.statusCode == 200) {
+            if (!error && response.statusCode === 200) {
                 var publicOclock = (body.publicTime).slice(11,13);
                 var publicMonth = (body.publicTime).slice(5,7);
                 var publicDay = (body.publicTime).slice(8,10);
-                session.send("[天気予報]\n\n" +
-                             "%s (%d/%d %d時 時点)\n\n" + // タイトル (予報時刻)
-                             "%s\n\n" + // リンクURL
-                             "%s : %s\n\n" + // 今日 : 晴れ
-                             "%s : %s\n\n" + // 明日 : 雨
-                             "---\n\n" +
-                             "%s",// copyright
+                session.send('[天気予報]\n\n' +
+                             '%s (%d/%d %d時 時点)\n\n' + // タイトル (予報時刻)
+                             '%s\n\n' + // リンクURL
+                             '%s : %s\n\n' + // 今日 : 晴れ
+                             '%s : %s\n\n' + // 明日 : 雨
+                             '---\n\n' +
+                             '%s',// copyright
                              body.title,
                              publicMonth,
                              publicDay,
@@ -210,7 +210,7 @@ bot.dialog('/weather', [
                              body.copyright.title);
             } else {
                 console.log('error: '+ response.statusCode);
-                sessino.send("status: %d",response.statusCode);
+                sessino.send('status: %d',response.statusCode);
             }
             session.endDialog();
         });
@@ -218,11 +218,11 @@ bot.dialog('/weather', [
 
 ]);
 
-bot.dialog('/karapaia', function (session){
-    rssUrl = "http://karapaia.livedoor.biz/index.rdf";
+bot.dialog('/karapaia', function (session) {
+    rssUrl = 'http://karapaia.livedoor.biz/index.rdf';
 
-    fetch_rss(rssUrl,
-              function (dateStr){
+    fetchRss(rssUrl,
+              function (dateStr) {
                   var monthTable = {
                       'Jan' : '01',
                       'Feb' : '02',
@@ -241,7 +241,7 @@ bot.dialog('/karapaia', function (session){
                   var day = dateStr.slice(8,10);
                   var oclock = dateStr.slice(16,18);
                   var minutes = dateStr.slice(19,21);
-                  return month + "/" + day + " " + oclock + ":" + minutes;
+                  return month + '/' + day + ' ' + oclock + ':' + minutes;
               },
               function (text) {
                   session.send(text);
@@ -251,11 +251,11 @@ bot.dialog('/karapaia', function (session){
     session.endDialog();
 });
 
-bot.dialog('/zaeega', function (session){
-    rssUrl = "http://www.zaeega.com/index.rdf";
+bot.dialog('/zaeega', function (session) {
+    rssUrl = 'http://www.zaeega.com/index.rdf';
 
-    fetch_rss(rssUrl,
-              function (dateStr){
+    fetchRss(rssUrl,
+              function (dateStr) {
                   var monthTable = {
                       'Jan' : '01',
                       'Feb' : '02',
@@ -274,7 +274,7 @@ bot.dialog('/zaeega', function (session){
                   var day = dateStr.slice(8,10);
                   var oclock = dateStr.slice(16,18);
                   var minutes = dateStr.slice(19,21);
-                  return month + "/" + day + " " + oclock + ":" + minutes;
+                  return month + '/' + day + ' ' + oclock + ':' + minutes;
               },
               function (text) {
                   session.send(text);
@@ -284,47 +284,44 @@ bot.dialog('/zaeega', function (session){
     session.endDialog();
 });
 
-function fetch_rss(rssUrl, parseDate, callback){
+function fetchRss(rssUrl, parseDate, callback) {
     var req = request(rssUrl);
     var feedparser = new FeedParser();
     var meta;
     var articleList = [];
 
     req.on('error', function (error) {
-        // リクエストエラー処理
-        session.send("[サイト更新情報] HTTPリクエストエラー。管理者に連絡してね。");
+        session.send('[更新情報] HTTPリクエストエラー。管理者に連絡してね。');
     });
     req.on('response', function (res) {
         var stream = this;
-        if (res.statusCode != 200) {
+        if (res.statusCode !== 200) {
             return this.emit('error', new Error('Bad status code'));
         }
         stream.pipe(feedparser);
     });
 
     feedparser.on('error', function(error) {
-        // 通常のエラー処理
-        session.send("[サイト更新情報] RSSパースエラー。管理者に連絡してね。");
+        session.send('[更新情報] RSSパースエラー。管理者に連絡してね。');
         console.log(error);
     });
     feedparser.on('readable', function() {
-        // 処理ロジックを書く
         // metaプロパティはfeedeparserインスタンスのコンテキストに常に置き換える
         var stream = this;
         meta = this.meta;
         var item;
-        while (null !== (item = stream.read())){
+        while (null !== (item = stream.read())) {
             articleList.push({'title': item.title, 'pubdate': item.pubdate, 'link': item.link});
         }
     });
-    feedparser.on('end', function(){
-        var text = "[更新情報] " + meta.title + "\n\n" +
-                    (function(){
-                        var articles = "";
-                        for (var i = 0; i < Math.min(5, articleList.length); i++){
-                            articles += "[" + parseDate(articleList[i].pubdate + "") +"] " + articleList[i].title + "\n\n" +
-                            articleList[i].link + "\n\n" +
-                            "--\n\n";
+    feedparser.on('end', function() {
+        var text = '[更新情報] ' + meta.title + '\n\n' +
+                    (function() {
+                        var articles = '';
+                        for (var i = 0; i < Math.min(5, articleList.length); i++) {
+                            articles += '[' + parseDate(articleList[i].pubdate + '') +'] ' + articleList[i].title + '\n\n' +
+                            articleList[i].link + '\n\n' +
+                            '--\n\n';
                         }
                         return articles;
                     }());
