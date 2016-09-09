@@ -170,7 +170,7 @@ bot.dialog('/weather', [
     function (session, results) {
         var locationTable = {
             '浜松': '220040',
-            'hamaamtu': '220040',
+            'hamamatu': '220040',
             '静岡': '220010',
             'sizuoka': '220010',
             '名古屋': '230010',
@@ -220,71 +220,20 @@ bot.dialog('/weather', [
 
 bot.dialog('/karapaia', function (session) {
     rssUrl = 'http://karapaia.livedoor.biz/index.rdf';
-
-    fetchRss(rssUrl,
-              function (dateStr) {
-                  var monthTable = {
-                      'Jan' : '01',
-                      'Feb' : '02',
-                      'Mar' : '03',
-                      'Apr' : '04',
-                      'May' : '05',
-                      'Jun' : '06',
-                      'Jul' : '07',
-                      'Aug' : '08',
-                      'Sep' : '09',
-                      'Oct' : '10',
-                      'Nov' : '11',
-                      'Dec' : '12'
-                  };
-                  var month = monthTable[dateStr.slice(4,7)];
-                  var day = dateStr.slice(8,10);
-                  var oclock = dateStr.slice(16,18);
-                  var minutes = dateStr.slice(19,21);
-                  return month + '/' + day + ' ' + oclock + ':' + minutes;
-              },
-              function (text) {
-                  session.send(text);
-              }
-    );
+    fetchRss(rssUrl, function (text) {session.send(text);});
 
     session.endDialog();
 });
 
 bot.dialog('/zaeega', function (session) {
     rssUrl = 'http://www.zaeega.com/index.rdf';
-
-    fetchRss(rssUrl,
-              function (dateStr) {
-                  var monthTable = {
-                      'Jan' : '01',
-                      'Feb' : '02',
-                      'Mar' : '03',
-                      'Apr' : '04',
-                      'May' : '05',
-                      'Jun' : '06',
-                      'Jul' : '07',
-                      'Aug' : '08',
-                      'Sep' : '09',
-                      'Oct' : '10',
-                      'Nov' : '11',
-                      'Dec' : '12'
-                  };
-                  var month = monthTable[dateStr.slice(4,7)];
-                  var day = dateStr.slice(8,10);
-                  var oclock = dateStr.slice(16,18);
-                  var minutes = dateStr.slice(19,21);
-                  return month + '/' + day + ' ' + oclock + ':' + minutes;
-              },
-              function (text) {
-                  session.send(text);
-              }
-    );
+    fetchRss(rssUrl, function (text) {session.send(text);});
 
     session.endDialog();
 });
 
-function fetchRss(rssUrl, parseDate, callback) {
+// refer to: https://github.com/danmactough/node-feedparser/blob/master/examples/compressed.js
+function fetchRss(rssUrl, callback) {
     var req = request(rssUrl);
     var feedparser = new FeedParser();
     var meta;
@@ -326,5 +275,12 @@ function fetchRss(rssUrl, parseDate, callback) {
                         return articles;
                     }());
         callback(text);
+
+        function parseDate(dateStr) {
+            var date = new Date(dateStr);
+            var mmddhhmi = ("0"+(date.getMonth()+1)).slice(-2) + '/'  + ("0"+date.getDate()).slice(-2) + ' ' +
+                           ("0"+date.getHours()).slice(-2) + ':' + ("0"+date.getMinutes()).slice(-2);
+            return mmddhhmi;
+        }
     });
 }
