@@ -102,7 +102,9 @@ bot.dialog('/', new builder.IntentDialog()
     .matches(/^(zenki|前期|ぜんき)(アニメ|あにめ|anime)?$/, '/zenki')
 );
 
-
+/**
+ *  てとらちゃんが挨拶してくれるだけ
+ */
 bot.dialog('/hello',
     function (session) {
         session.send('こんちゃ!!');
@@ -110,6 +112,11 @@ bot.dialog('/hello',
     }
 );
 
+/**
+ * ツンデレAPIを介して入力された文がツンデレかどうか判定する。
+ * 現在(2016/9/10)APIが稼働しておらず、機能しない。
+ * @link http://qiita.com/coco_ml/items/0d91aeafb7f896dde25b
+ */
 bot.dialog('/tundere', [
     function (session) {
         builder.Prompts.text(session, '[ツンデレ判定] 文を書いてね！');
@@ -134,6 +141,9 @@ bot.dialog('/tundere', [
     }
 ]);
 
+/**
+ * BMIを計算する。
+ */
 bot.dialog('/bmi',[
     function (session) {
         builder.Prompts.text(session, '[BMI] 身長(cm)を入力してね！');
@@ -161,6 +171,10 @@ bot.dialog('/bmi',[
     }
 ]);
 
+/**
+ * 選択した地域の天気予報を天気予報APIを介して表示する。
+ * @link http://weather.livedoor.com/weather_hacks/webservice
+ */
 bot.dialog('/weather', [
     function (session) {
         builder.Prompts.text(session, '[天気予報] 地域を選んでね\n\n' +
@@ -221,6 +235,10 @@ bot.dialog('/weather', [
 
 ]);
 
+/**
+ * 要望で「カラパイア」の最新記事5つを表示。
+ * RSSをパースしている。
+ */
 bot.dialog('/karapaia', function (session) {
     var rssUrl = 'http://karapaia.livedoor.biz/index.rdf';
     fetchRss(rssUrl, function (text) {session.send(text);});
@@ -228,6 +246,10 @@ bot.dialog('/karapaia', function (session) {
     session.endDialog();
 });
 
+/**
+ * 要望で「ザイーガ」の最新記事5つを表示。
+ * カラパイアと同じ。
+ */
 bot.dialog('/zaeega', function (session) {
     var rssUrl = 'http://www.zaeega.com/index.rdf';
     fetchRss(rssUrl, function (text) {session.send(text);});
@@ -235,6 +257,15 @@ bot.dialog('/zaeega', function (session) {
     session.endDialog();
 });
 
+/**
+ * 今期アニメ一覧の画像をudurainfoさんから拝借して表示する。
+ * スクレイピングはcheerio-httpcliを使用。
+ * @link http://qiita.com/ktty1220/items/e9e42247ede476d04ce2 cheerio-httpcli
+ *
+ * TODO
+ *  - 今期、次期、前期は取得できるがもっと幅広く習得できるようにしたい。
+ *  - getUdurainfoUrlは既に対応している。
+ */
 bot.dialog('/konki', function (session) {
     var siteUrl = getUdurainfoUrl(0);
     session.send(siteUrl);
@@ -258,6 +289,12 @@ bot.dialog('/konki', function (session) {
     session.endDialog();
 });
 
+/**
+ * 次期アニメ版。
+ *
+ * TODO
+ * ほぼ今期アニメと同じ構造になっているが、なんとかできないか。
+ */
 bot.dialog('/jiki', function (session) {
     var siteUrl = getUdurainfoUrl(1);
     session.send(siteUrl);
@@ -281,6 +318,12 @@ bot.dialog('/jiki', function (session) {
     session.endDialog();
 });
 
+/**
+ * 前期アニメ版。
+ *
+ * TODO
+ * ほぼ今期アニメと同じ構造になっているが、なんとかできないか。
+ */
 bot.dialog('/zenki', function (session) {
     var siteUrl = getUdurainfoUrl(-1);
     session.send(siteUrl);
@@ -308,8 +351,8 @@ bot.dialog('/zenki', function (session) {
  * udurainfoからアニメ一覧画像のURLを取得する。
  * periodは時期の意。
  *
- * @param  {num} relativePeriod 0なら今期、-1なら前期、1なら次期の画像を取得。それ以上も可。
- * @return {string}  アニメ一覧画像のURL。
+ * @param  {number} relativePeriod  - 0なら今期、-1なら前期、1なら次期の画像を取得。それ以上も可。
+ * @return {string}                 - アニメ一覧画像のURL。
  */
 function getUdurainfoUrl(relativePeriod) {
     var periodCodeTable = {
@@ -328,7 +371,14 @@ function getUdurainfoUrl(relativePeriod) {
     return  'http://uzurainfo.han-be.com/' + year + periodCode + '.html';
 }
 
-// refer to: https://github.com/danmactough/node-feedparser/blob/master/examples/compressed.js
+/**
+ * RSSから最新記事5つを取得する。
+ * @link https://github.com/danmactough/node-feedparser/blob/master/examples/compressed.js feedparser
+ *
+ * @param  {string}   rssUrl    - 取得するRSSのURL
+ * @param  {Function} callback  - 取得後にcallback関数で表示することを想定している。
+ * @return {void}
+ */
 function fetchRss(rssUrl, callback) {
     var req = request(rssUrl);
     var feedparser = new FeedParser();
@@ -372,6 +422,12 @@ function fetchRss(rssUrl, callback) {
                     }());
         callback(text);
 
+        /**
+         * 記事の投稿日時を'mm/yy hh:mi'と簡易的なものに変換する。
+         *
+         * @param  {string} dateStr     - Date型になる文字列
+         * @return {string} mmddhhmi    - mm/yy hh:mi形式にした日時
+         */
         function parseDate(dateStr) {
             var date = new Date(dateStr);
             var mmddhhmi = ("0"+(date.getMonth()+1)).slice(-2) + '/'  + ("0"+date.getDate()).slice(-2) + ' ' +
