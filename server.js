@@ -96,7 +96,10 @@ bot.dialog('/', new builder.IntentDialog()
     .matches(/^(weather|tenki|天気|てんき)$/i, '/weather')
     .matches(/^bmi$/i,'/bmi')
     .matches(/^(karapaia|カラパイア|からぱいあ)$/i, '/karapaia')
-    .matches(/^(zaeega|ザイーガ|ザイーガ)$/i, '/zaeega')
+    .matches(/^(zaeega|ザイーガ|ざいーが)$/i, '/zaeega')
+    .matches(/^(anime|アニメ|あにめ|konki|今期|こんき)(アニメ|あにめ|anime)?$/, '/konki')
+    .matches(/^(jiki|giki|次期|じき)(アニメ|あにめ|anime)?$/, '/jiki')
+    .matches(/^(zenki|前期|ぜんき)(アニメ|あにめ|anime)?$/, '/zenki')
 );
 
 
@@ -219,18 +222,111 @@ bot.dialog('/weather', [
 ]);
 
 bot.dialog('/karapaia', function (session) {
-    rssUrl = 'http://karapaia.livedoor.biz/index.rdf';
+    var rssUrl = 'http://karapaia.livedoor.biz/index.rdf';
     fetchRss(rssUrl, function (text) {session.send(text);});
 
     session.endDialog();
 });
 
 bot.dialog('/zaeega', function (session) {
-    rssUrl = 'http://www.zaeega.com/index.rdf';
+    var rssUrl = 'http://www.zaeega.com/index.rdf';
     fetchRss(rssUrl, function (text) {session.send(text);});
 
     session.endDialog();
 });
+
+bot.dialog('/konki', function (session) {
+    var siteUrl = getUdurainfoUrl(0);
+    session.send(siteUrl);
+
+    var client = require('cheerio-httpcli');
+    client.fetch(siteUrl,function (error, $, response, body){
+        if (error) {
+            console.log(error);
+            return;
+        }
+
+        imgUrl = 'http://uzurainfo.han-be.com/' + $('img').attr('src');
+        var imgMsg = new builder.Message(session)
+        .attachments([{
+            contentType: "image/jpeg",
+            contentUrl: imgUrl
+        }]);
+        session.send(imgMsg);
+    });
+
+    session.endDialog();
+});
+
+bot.dialog('/jiki', function (session) {
+    var siteUrl = getUdurainfoUrl(1);
+    session.send(siteUrl);
+
+    var client = require('cheerio-httpcli');
+    client.fetch(siteUrl,function (error, $, response, body){
+        if (error) {
+            console.log(error);
+            return;
+        }
+
+        imgUrl = 'http://uzurainfo.han-be.com/' + $('img').attr('src');
+        var imgMsg = new builder.Message(session)
+        .attachments([{
+            contentType: "image/jpeg",
+            contentUrl: imgUrl
+        }]);
+        session.send(imgMsg);
+    });
+
+    session.endDialog();
+});
+
+bot.dialog('/zenki', function (session) {
+    var siteUrl = getUdurainfoUrl(-1);
+    session.send(siteUrl);
+
+    var client = require('cheerio-httpcli');
+    client.fetch(siteUrl,function (error, $, response, body){
+        if (error) {
+            console.log(error);
+            return;
+        }
+
+        imgUrl = 'http://uzurainfo.han-be.com/' + $('img').attr('src');
+        var imgMsg = new builder.Message(session)
+        .attachments([{
+            contentType: "image/jpeg",
+            contentUrl: imgUrl
+        }]);
+        session.send(imgMsg);
+    });
+
+    session.endDialog();
+});
+
+/**
+ * udurainfoからアニメ一覧画像のURLを取得する。
+ * periodは時期の意。
+ *
+ * @param  {num} relativePeriod 0なら今期、-1なら前期、1なら次期の画像を取得。それ以上も可。
+ * @return {string}  アニメ一覧画像のURL。
+ */
+function getUdurainfoUrl(relativePeriod) {
+    var periodCodeTable = {
+        0: 'w',
+        1: 'sp',
+        2: 'sm',
+        3: 'a'
+    };
+    var d = new Date();
+
+    var currentYear = (d.getFullYear() + '').slice(-2);
+    var currentPeriod = Math.floor(d.getMonth() / 3);
+    var period = (currentPeriod + relativePeriod) % 4;
+    var year = parseInt(currentYear) + (Math.floor((currentPeriod + relativePeriod) / 4));
+    var periodCode = periodCodeTable[period];
+    return  'http://uzurainfo.han-be.com/' + year + periodCode + '.html';
+}
 
 // refer to: https://github.com/danmactough/node-feedparser/blob/master/examples/compressed.js
 function fetchRss(rssUrl, callback) {
