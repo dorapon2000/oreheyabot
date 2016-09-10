@@ -84,11 +84,30 @@ bot.use(builder.Middleware.dialogVersion({ version: 1.0, resetCommand: /^reset/i
 //=========================================================
 
 bot.endConversationAction('goodbye', 'Goodbye :)', { matches: /^goodbye/i });
-bot.beginDialogAction('help', '/help', { matches: /^help/i });
+bot.beginDialogAction('help', '/help', { matches: /^(help|ヘルプ|コマンド)/i });
 
 //=========================================================
 // Bots Dialogs
 //=========================================================
+
+/**
+ * コマンドの説明
+ */
+bot.dialog('/help', function(session) {
+    text = '[コマンド一覧]\n\n' +
+           'ハロー : 挨拶を返してくれる\n\n' +
+           'ツンデレ : ツンデレ判定機能(現在停止中)\n\n' +
+           '天気 : 天気予報\n\n' +
+           'bmi : BMIを計算\n\n' +
+           'カラパイア : サイト「カラパイア」の最新記事を5つ表示\n\n' +
+           'アニメ or 今期 : 今期アニメ一覧の画像を表示\n\n' +
+           '次期 : 次期アニメ一覧の画像を表示\n\n' +
+           '前期 : 前期アニメ一覧の画像を表示\n\n' +
+           '--\n\n' +
+           'まだまだ機能は追加予定。欲しい機能があれば管理者まで。';
+    session.send(text);
+    session.endDialog();
+});
 
 bot.dialog('/', new builder.IntentDialog()
     .matches(/^(tundere|ツンデレ|つんでれ)$/i, '/tundere')
@@ -280,7 +299,7 @@ bot.dialog('/konki', function (session) {
         imgUrl = 'http://uzurainfo.han-be.com/' + $('img').attr('src');
         var imgMsg = new builder.Message(session)
         .attachments([{
-            contentType: "image/jpeg",
+            contentType: 'image/jpeg',
             contentUrl: imgUrl
         }]);
         session.send(imgMsg);
@@ -309,7 +328,7 @@ bot.dialog('/jiki', function (session) {
         imgUrl = 'http://uzurainfo.han-be.com/' + $('img').attr('src');
         var imgMsg = new builder.Message(session)
         .attachments([{
-            contentType: "image/jpeg",
+            contentType: 'image/jpeg',
             contentUrl: imgUrl
         }]);
         session.send(imgMsg);
@@ -338,7 +357,7 @@ bot.dialog('/zenki', function (session) {
         imgUrl = 'http://uzurainfo.han-be.com/' + $('img').attr('src');
         var imgMsg = new builder.Message(session)
         .attachments([{
-            contentType: "image/jpeg",
+            contentType: 'image/jpeg',
             contentUrl: imgUrl
         }]);
         session.send(imgMsg);
@@ -430,8 +449,8 @@ function fetchRss(rssUrl, callback) {
          */
         function parseDate(dateStr) {
             var date = new Date(dateStr);
-            var mmddhhmi = ("0"+(date.getMonth()+1)).slice(-2) + '/'  + ("0"+date.getDate()).slice(-2) + ' ' +
-                           ("0"+date.getHours()).slice(-2) + ':' + ("0"+date.getMinutes()).slice(-2);
+            var mmddhhmi = ('0'+(date.getMonth()+1)).slice(-2) + '/'  + ('0'+date.getDate()).slice(-2) + ' ' +
+                           ('0'+date.getHours()).slice(-2) + ':' + ('0'+date.getMinutes()).slice(-2);
             return mmddhhmi;
         }
     });
