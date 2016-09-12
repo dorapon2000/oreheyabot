@@ -96,7 +96,7 @@ bot.beginDialogAction('help', '/help', { matches: /^(help|ヘルプ|コマンド
 bot.dialog('/help', function(session) {
     text = '[コマンド一覧]\n\n' +
            'ハロー : 挨拶を返してくれる\n\n' +
-           'ツンデレ : ツンデレ判定機能(現在停止中)\n\n' +
+           'ツンデレ : ツンデレ判定機能\n\n' +
            '天気 : 天気予報\n\n' +
            'bmi : BMIを計算\n\n' +
            'カラパイア : サイト「カラパイア」の最新記事を5つ表示\n\n' +
@@ -134,8 +134,7 @@ bot.dialog('/hello',
 
 /**
  * ツンデレAPIを介して入力された文がツンデレかどうか判定する。
- * 現在(2016/9/10)APIが稼働しておらず、機能しない。
- * @link http://qiita.com/coco_ml/items/0d91aeafb7f896dde25b
+ * @link http://qiita.com/temperance/items/557ee72231979b840ca5
  */
 bot.dialog('/tundere', [
     function (session) {
@@ -143,18 +142,17 @@ bot.dialog('/tundere', [
     },
     function (session, results) {
         var options = {
-            url: 'http://coco.user.surume.tk/api/v1/is_tundere',
-            qs: {text: results.response},
+            url: 'http://coco.user.surume.tk/api/v1/is_tundere/' + encodeURIComponent(results.response),
             json: true
         };
 
         request.get(options, function (error, response, body) {
             if (!error && response.statusCode === 200) {
-                var judge = body.status ? 'ツンデレ' : 'ツンデレじゃない';
+                var judge = body.status === 'tundere' ? 'ツンデレ' : 'ツンデレじゃない';
                 session.send('判定 : %s',judge);
             } else {
                 console.log('error: '+ response.statusCode);
-                session.send('error: %d', response.statusCode);
+                session.send('[ツンデレ判定] %d 管理者に連絡してね。', response.statusCode);
             }
             session.endDialog();
         });
