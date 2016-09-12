@@ -119,6 +119,7 @@ bot.dialog('/', new builder.IntentDialog()
     .matches(/^(anime|アニメ|あにめ|konki|今期|こんき)(アニメ|あにめ|anime)?$/, '/konki')
     .matches(/^(jiki|giki|次期|じき)(アニメ|あにめ|anime)?$/, '/jiki')
     .matches(/^(zenki|前期|ぜんき)(アニメ|あにめ|anime)?$/, '/zenki')
+    .matches(/^(oekaki|お絵かき|おえかき)$/i, '/oekaki')
 );
 
 /**
@@ -363,6 +364,14 @@ bot.dialog('/zenki', function (session) {
         session.send(imgMsg);
     });
 
+    session.endDialog();
+});
+
+/**
+ * お絵かきURLを張る
+ */
+bot.dialog('/oekaki', function (session) {
+    session.send('http://casual.hangame.co.jp/oekaki/');
     session.endDialog();
 });
 
