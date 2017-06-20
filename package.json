@@ -9,7 +9,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "botbuilder": "^3.2.3",
+    "botbuilder": "^3.8.4",
     "cheerio-httpcli": "^0.6.9",
     "feedparser": "^1.1.4",
     "restify": "^4.1.1"
