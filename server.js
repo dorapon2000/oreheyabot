@@ -134,30 +134,31 @@ bot.dialog('/hello',
 
 /**
  * ツンデレAPIを介して入力された文がツンデレかどうか判定する。
+ * API廃止
  * @link http://qiita.com/temperance/items/557ee72231979b840ca5
  */
-bot.dialog('/tundere', [
-    function (session) {
-        builder.Prompts.text(session, '[ツンデレ判定] 文を書いてね！');
-    },
-    function (session, results) {
-        var options = {
-            url: 'http://coco.user.surume.tk/api/v1/is_tundere/' + encodeURIComponent(results.response),
-            json: true
-        };
-
-        request.get(options, function (error, response, body) {
-            if (!error && response.statusCode === 200) {
-                var judge = body.status === 'tundere' ? 'ツンデレ' : 'ツンデレじゃない';
-                session.send('判定 : %s',judge);
-            } else {
-                console.log('error: '+ response.statusCode);
-                session.send('[ツンデレ判定] %d 管理者に連絡してね。', response.statusCode);
-            }
-            session.endDialog();
-        });
-    }
-]);
+// bot.dialog('/tundere', [
+//     function (session) {
+//         builder.Prompts.text(session, '[ツンデレ判定] 文を書いてね！');
+//     },
+//     function (session, results) {
+//         var options = {
+//             url: 'http://coco.user.surume.tk/api/v1/is_tundere/' + encodeURIComponent(results.response),
+//             json: true
+//         };
+//
+//         request.get(options, function (error, response, body) {
+//             if (!error && response.statusCode === 200) {
+//                 var judge = body.status === 'tundere' ? 'ツンデレ' : 'ツンデレじゃない';
+//                 session.send('判定 : %s',judge);
+//             } else {
+//                 console.log('error: '+ response.statusCode);
+//                 session.send('[ツンデレ判定] %d 管理者に連絡してね。', response.statusCode);
+//             }
+//             session.endDialog();
+//         });
+//     }
+// ]);
 
 /**
  * BMIを計算する。
