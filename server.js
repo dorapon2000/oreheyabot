@@ -96,7 +96,7 @@ bot.beginDialogAction('help', '/help', { matches: /^(help|ヘルプ|コマンド
 bot.dialog('/help', function(session) {
     text = '[コマンド一覧]\n\n' +
            'ハロー : 挨拶を返してくれる\n\n' +
-           'ツンデレ : ツンデレ判定機能\n\n' +
+           'ツンデレ : ツンデレ判定機能(休止中)\n\n' +
            '天気 : 天気予報\n\n' +
            'bmi : BMIを計算\n\n' +
            'カラパイア : サイト「カラパイア」の最新記事を5つ表示\n\n' +
@@ -104,6 +104,7 @@ bot.dialog('/help', function(session) {
            '次期 : 次期アニメ一覧の画像を表示\n\n' +
            '前期 : 前期アニメ一覧の画像を表示\n\n' +
            '漢検 : 漢字読み問題\n\n' +
+           'クイズ : ウルトラクイズ3択\n\n' +
            '--\n\n' +
            'まだまだ機能は追加予定。欲しい機能があれば管理者まで。';
     session.send(text);
@@ -122,6 +123,7 @@ bot.dialog('/', new builder.IntentDialog()
     .matches(/^(zenki|前期|ぜんき)(アニメ|あにめ|anime)?$/, '/zenki')
     .matches(/^(oekaki|お絵かき|おえかき)$/i, '/oekaki')
     .matches(/^(kanken|漢検)$/i, '/kanken')
+    .matches(/^(quiz|kuizu|クイズ|くいず)$/i, '/ultraquiz')
 );
 
 /**
@@ -482,62 +484,62 @@ bot.dialog('/kanken',[
             var rand = Math.floor( Math.random() * dataList.length );
             questionList.push(dataList[rand]);
         }
-        session.dialogData.question = questionList.concat(); //concatは配列のコピーに使ってる
+        session.dialogData.questions = questionList.concat(); //concatは配列のコピーに使ってる
         session.dialogData.rightNum = 0;
 
-        builder.Prompts.text(session, '[1問目] ' + session.dialogData.question[0].kanji);
+        builder.Prompts.text(session, '[1問目] ' + session.dialogData.questions[0].kanji);
     },
     function (session, results) {
         var resultMsg;
-        if (results.response == session.dialogData.question[0].yomi ) {
+        if (results.response == session.dialogData.questions[0].yomi ) {
             resultMsg = '[答え] あたり！';
             session.dialogData.rightNum++;
         } else
-            resultMsg = '[答え] ' + session.dialogData.question[0].yomi;
+            resultMsg = '[答え] ' + session.dialogData.questions[0].yomi;
         session.send(resultMsg);
 
-        builder.Prompts.text(session, '[2問目] ' + session.dialogData.question[1].kanji);
+        builder.Prompts.text(session, '[2問目] ' + session.dialogData.questions[1].kanji);
     },
     function (session, results) {
         var resultMsg;
-        if (results.response == session.dialogData.question[1].yomi ) {
+        if (results.response == session.dialogData.questions[1].yomi ) {
             resultMsg = '[答え] あたり！';
             session.dialogData.rightNum++;
         } else
-            resultMsg = '[答え] ' + session.dialogData.question[1].yomi;
+            resultMsg = '[答え] ' + session.dialogData.questions[1].yomi;
         session.send(resultMsg);
 
-        builder.Prompts.text(session, '[3問目] ' + session.dialogData.question[2].kanji);
+        builder.Prompts.text(session, '[3問目] ' + session.dialogData.questions[2].kanji);
     },
     function (session, results) {
         var resultMsg;
-        if (results.response == session.dialogData.question[2].yomi ) {
+        if (results.response == session.dialogData.questions[2].yomi ) {
             resultMsg = '[答え] あたり！';
             session.dialogData.rightNum++;
         } else
-            resultMsg = '[答え] ' + session.dialogData.question[2].yomi;
+            resultMsg = '[答え] ' + session.dialogData.questions[2].yomi;
         session.send(resultMsg);
 
-        builder.Prompts.text(session, '[4問目]' + session.dialogData.question[3].kanji);
+        builder.Prompts.text(session, '[4問目]' + session.dialogData.questions[3].kanji);
     },
     function (session, results) {
         var resultMsg;
-        if (results.response == session.dialogData.question[3].yomi ) {
+        if (results.response == session.dialogData.questions[3].yomi ) {
             resultMsg = '[答え] あたり！';
             session.dialogData.rightNum++;
         } else
-            resultMsg = '[答え] ' + session.dialogData.question[3].yomi;
+            resultMsg = '[答え] ' + session.dialogData.questions[3].yomi;
         session.send(resultMsg);
 
-        builder.Prompts.text(session, '[5問目]' + session.dialogData.question[4].kanji);
+        builder.Prompts.text(session, '[5問目]' + session.dialogData.questions[4].kanji);
     },
     function (session, results) {
         var resultMsg;
-        if (results.response == session.dialogData.question[4].yomi ) {
+        if (results.response == session.dialogData.questions[4].yomi ) {
             resultMsg = '[答え] あたり！';
             session.dialogData.rightNum++;
         } else
-            resultMsg = '[答え] ' + session.dialogData.question[4].yomi;
+            resultMsg = '[答え] ' + session.dialogData.questions[4].yomi;
         session.send(resultMsg);
 
         session.send('[結果] ' + session.dialogData.rightNum + ' 問正解!!');
@@ -547,6 +549,113 @@ bot.dialog('/kanken',[
     matches: /^(stop|cancel|中止|終了|終わり|キャンセル)$/i,
 });
 
+
+/**
+ * ウルトラクイズの問題を出題する
+ *
+ *
+ */
+bot.dialog('/ultraquiz',[
+    function (session) {
+        var dataList = csv2Array('data/ultraquizdata.csv');
+        var questionList = [];
+
+        QUESTION_NUM = 5;
+        for (var i = 0; i < QUESTION_NUM; i++) {
+            var rand = Math.floor( Math.random() * dataList.length );
+            questionList.push(dataList[rand]);
+        }
+        session.dialogData.questions = questionList.concat(); //concatは配列のコピーに使ってる
+        session.dialogData.rightNum = 0;
+
+        var q = session.dialogData.questions;
+
+        builder.Prompts.choice(session,
+            '[1問目] ' + q[0].question,
+            q[0].c1 + '|' + q[0].c2 + '|' + q[0].c3,
+            builder.ListStyle.button);
+    },
+    function (session, results) {
+        var q = session.dialogData.questions;
+
+        var resultMsg;
+        if (results.response == q[0].anser ) {
+            resultMsg = '[答え] あたり！';
+            session.dialogData.rightNum++;
+        } else
+            resultMsg = '[答え] ' + q[0].anser;
+        session.send(resultMsg);
+
+        builder.Prompts.choice(session,
+            '[2問目] ' + q[1].question,
+            q[1].c1 + '|' + q[1].c2 + '|' + q[2].c3,
+            builder.ListStyle.button);
+    },
+    function (session, results) {
+        var q = session.dialogData.questions;
+
+        var resultMsg;
+        if (results.response == q[1].anser ) {
+            resultMsg = '[答え] あたり！';
+            session.dialogData.rightNum++;
+        } else
+            resultMsg = '[答え] ' + q[1].anser;
+        session.send(resultMsg);
+
+        builder.Prompts.choice(session,
+            '[3問目] ' + q[2].question,
+            q[2].c1 + '|' + q[2].c2 + '|' + q[2].c3,
+            builder.ListStyle.button);
+    },
+    function (session, results) {
+        var q = session.dialogData.questions;
+
+        var resultMsg;
+        if (results.response == q[2].anser ) {
+            resultMsg = '[答え] あたり！';
+            session.dialogData.rightNum++;
+        } else
+            resultMsg = '[答え] ' + q[2].anser;
+        session.send(resultMsg);
+
+        builder.Prompts.choice(session,
+            '[4問目] ' + q[3].question,
+            q[3].c1 + '|' + q[3].c2 + '|' + q[3].c3,
+            builder.ListStyle.button);
+    },
+    function (session, results) {
+        var q = session.dialogData.questions;
+
+        var resultMsg;
+        if (results.response == q[3].anser ) {
+            resultMsg = '[答え] あたり！';
+            session.dialogData.rightNum++;
+        } else
+            resultMsg = '[答え] ' + q[3].anser;
+        session.send(resultMsg);
+
+        builder.Prompts.choice(session,
+            '[5問目] ' + q[3].question,
+            q[3].c1 + '|' + q[3].c2 + '|' + q[3].c3,
+            builder.ListStyle.button);
+    },
+    function (session, results) {
+        var q = session.dialogData.questions;
+
+        var resultMsg;
+        if (results.response == q[4].anser ) {
+            resultMsg = '[答え] あたり！';
+            session.dialogData.rightNum++;
+        } else
+            resultMsg = '[答え] ' + q[4].anser;
+        session.send(resultMsg);
+
+        session.send('[結果] ' + session.dialogData.rightNum + ' 問正解!!');
+        session.endDialog();
+    }
+]).endConversationAction('endKanken','中止',{
+    matches: /^(stop|cancel|中止|終了|終わり|キャンセル)$/i,
+});
 
 /**
  * CSVファイルを読み込む関数
