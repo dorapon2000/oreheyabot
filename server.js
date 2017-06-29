@@ -572,14 +572,14 @@ bot.dialog('/ultraquiz',[
 
         builder.Prompts.choice(session,
             '[1問目] ' + q[0].question,
-            q[0].c1 + '|' + q[0].c2 + '|' + q[0].c3,
+            [q[0].c1, q[0].c2, q[0].c3],
             builder.ListStyle.button);
     },
     function (session, results) {
         var q = session.dialogData.questions;
 
         var resultMsg;
-        if (results.response == q[0].anser ) {
+        if (results.response.entity == q[0].anser ) {
             resultMsg = '[答え] あたり！';
             session.dialogData.rightNum++;
         } else
@@ -588,14 +588,14 @@ bot.dialog('/ultraquiz',[
 
         builder.Prompts.choice(session,
             '[2問目] ' + q[1].question,
-            q[1].c1 + '|' + q[1].c2 + '|' + q[2].c3,
+            [q[1].c1, q[1].c2, q[1].c3],
             builder.ListStyle.button);
     },
     function (session, results) {
         var q = session.dialogData.questions;
 
         var resultMsg;
-        if (results.response == q[1].anser ) {
+        if (results.response.entity == q[1].anser ) {
             resultMsg = '[答え] あたり！';
             session.dialogData.rightNum++;
         } else
@@ -604,14 +604,14 @@ bot.dialog('/ultraquiz',[
 
         builder.Prompts.choice(session,
             '[3問目] ' + q[2].question,
-            q[2].c1 + '|' + q[2].c2 + '|' + q[2].c3,
+            [q[2].c1, q[2].c2, q[2].c3],
             builder.ListStyle.button);
     },
     function (session, results) {
         var q = session.dialogData.questions;
 
         var resultMsg;
-        if (results.response == q[2].anser ) {
+        if (results.response.entity == q[2].anser ) {
             resultMsg = '[答え] あたり！';
             session.dialogData.rightNum++;
         } else
@@ -620,14 +620,14 @@ bot.dialog('/ultraquiz',[
 
         builder.Prompts.choice(session,
             '[4問目] ' + q[3].question,
-            q[3].c1 + '|' + q[3].c2 + '|' + q[3].c3,
+            [q[3].c1, q[3].c2, q[3].c3],
             builder.ListStyle.button);
     },
     function (session, results) {
         var q = session.dialogData.questions;
 
         var resultMsg;
-        if (results.response == q[3].anser ) {
+        if (results.response.entity == q[3].anser ) {
             resultMsg = '[答え] あたり！';
             session.dialogData.rightNum++;
         } else
@@ -635,15 +635,15 @@ bot.dialog('/ultraquiz',[
         session.send(resultMsg);
 
         builder.Prompts.choice(session,
-            '[5問目] ' + q[3].question,
-            q[3].c1 + '|' + q[3].c2 + '|' + q[3].c3,
+            '[5問目] ' + q[4].question,
+            [q[4].c1, q[4].c2, q[4].c3],
             builder.ListStyle.button);
     },
     function (session, results) {
         var q = session.dialogData.questions;
 
         var resultMsg;
-        if (results.response == q[4].anser ) {
+        if (results.response.entity == q[4].anser ) {
             resultMsg = '[答え] あたり！';
             session.dialogData.rightNum++;
         } else
