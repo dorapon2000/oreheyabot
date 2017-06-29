@@ -472,7 +472,8 @@ function fetchRss(rssUrl, callback) {
 /**
  * 漢字の読み問題を出題する
  *
- *
+ * @link
+ * http://kanken.jitenon.jp/mondai1z/
  */
 bot.dialog('/kanken',[
     function (session) {
@@ -487,6 +488,7 @@ bot.dialog('/kanken',[
         session.dialogData.questions = questionList.concat(); //concatは配列のコピーに使ってる
         session.dialogData.rightNum = 0;
 
+        session.send('「終了」で問題の途中でも終えられるよ！');
         builder.Prompts.text(session, '[1問目] ' + session.dialogData.questions[0].kanji);
     },
     function (session, results) {
@@ -545,7 +547,7 @@ bot.dialog('/kanken',[
         session.send('[結果] ' + session.dialogData.rightNum + ' 問正解!!');
         session.endDialog();
     }
-]).endConversationAction('endKanken','中止',{
+]).endConversationAction('endKanken','漢検終わり',{
     matches: /^(stop|cancel|中止|終了|終わり|キャンセル)$/i,
 });
 
@@ -553,7 +555,8 @@ bot.dialog('/kanken',[
 /**
  * ウルトラクイズの問題を出題する
  *
- *
+ * @link
+ * http://outdoor.geocities.jp/twnfh640/auquiz.chapter3.html
  */
 bot.dialog('/ultraquiz',[
     function (session) {
@@ -570,10 +573,14 @@ bot.dialog('/ultraquiz',[
 
         var q = session.dialogData.questions;
 
+        session.send('「終了」で問題の途中でも終えられるよ！');
         builder.Prompts.choice(session,
             '[1問目] ' + q[0].question,
             [q[0].c1, q[0].c2, q[0].c3],
-            builder.ListStyle.button);
+            {
+                listStyle : builder.ListStyle.button,
+                retryPrompt : '終わり',
+            });
     },
     function (session, results) {
         var q = session.dialogData.questions;
@@ -589,7 +596,10 @@ bot.dialog('/ultraquiz',[
         builder.Prompts.choice(session,
             '[2問目] ' + q[1].question,
             [q[1].c1, q[1].c2, q[1].c3],
-            builder.ListStyle.button);
+            {
+                listStyle : builder.ListStyle.button,
+                retryPrompt : '無効な解答だよ！',
+            });
     },
     function (session, results) {
         var q = session.dialogData.questions;
@@ -605,7 +615,10 @@ bot.dialog('/ultraquiz',[
         builder.Prompts.choice(session,
             '[3問目] ' + q[2].question,
             [q[2].c1, q[2].c2, q[2].c3],
-            builder.ListStyle.button);
+            {
+                listStyle : builder.ListStyle.button,
+                retryPrompt : '無効な解答だよ！',
+            });
     },
     function (session, results) {
         var q = session.dialogData.questions;
@@ -621,7 +634,10 @@ bot.dialog('/ultraquiz',[
         builder.Prompts.choice(session,
             '[4問目] ' + q[3].question,
             [q[3].c1, q[3].c2, q[3].c3],
-            builder.ListStyle.button);
+            {
+                listStyle : builder.ListStyle.button,
+                retryPrompt : '無効な解答だよ！',
+            });
     },
     function (session, results) {
         var q = session.dialogData.questions;
@@ -637,7 +653,10 @@ bot.dialog('/ultraquiz',[
         builder.Prompts.choice(session,
             '[5問目] ' + q[4].question,
             [q[4].c1, q[4].c2, q[4].c3],
-            builder.ListStyle.button);
+            {
+                listStyle : builder.ListStyle.button,
+                retryPrompt : '無効な解答だよ！',
+            });
     },
     function (session, results) {
         var q = session.dialogData.questions;
@@ -653,7 +672,7 @@ bot.dialog('/ultraquiz',[
         session.send('[結果] ' + session.dialogData.rightNum + ' 問正解!!');
         session.endDialog();
     }
-]).endConversationAction('endKanken','中止',{
+]).endConversationAction('endUltraQuiz','クイズ終わり',{
     matches: /^(stop|cancel|中止|終了|終わり|キャンセル)$/i,
 });
 
