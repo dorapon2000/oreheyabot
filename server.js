@@ -103,6 +103,7 @@ bot.dialog('/help', function(session) {
            'アニメ or 今期 : 今期アニメ一覧の画像を表示\n\n' +
            '次期 : 次期アニメ一覧の画像を表示\n\n' +
            '前期 : 前期アニメ一覧の画像を表示\n\n' +
+           '漢検 : 漢字読み問題\n\n' +
            '--\n\n' +
            'まだまだ機能は追加予定。欲しい機能があれば管理者まで。';
     session.send(text);
@@ -120,6 +121,7 @@ bot.dialog('/', new builder.IntentDialog()
     .matches(/^(jiki|giki|次期|じき)(アニメ|あにめ|anime)?$/, '/jiki')
     .matches(/^(zenki|前期|ぜんき)(アニメ|あにめ|anime)?$/, '/zenki')
     .matches(/^(oekaki|お絵かき|おえかき)$/i, '/oekaki')
+    .matches(/^(kanken|漢検)$/i, '/kanken')
 );
 
 /**
@@ -462,4 +464,101 @@ function fetchRss(rssUrl, callback) {
             return mmddhhmi;
         }
     });
+}
+
+
+/**
+ * 漢字の読み問題を出題する
+ *
+ *
+ */
+bot.dialog('/kanken',[
+    function (session) {
+        var dataList = csv2Array('data/kanjiyomi.csv');
+        var questionList = [];
+
+        QUESTION_NUM = 5;
+        for (var i = 0; i < QUESTION_NUM; i++) {
+            var rand = Math.floor( Math.random() * dataList.length );
+            questionList.push(dataList[rand]);
+        }
+        session.dialogData.question = questionList.concat(); //concatは配列のコピーに使ってる
+        session.dialogData.rightNum = 0;
+
+        builder.Prompts.text(session, '[1問目] ' + session.dialogData.question[0].kanji);
+    },
+    function (session, results) {
+        var resultMsg;
+        if (results.response == session.dialogData.question[0].yomi ) {
+            resultMsg = '[答え] あたり！';
+            session.dialogData.rightNum++;
+        } else
+            resultMsg = '[答え] ' + session.dialogData.question[0].yomi;
+        session.send(resultMsg);
+
+        builder.Prompts.text(session, '[2問目] ' + session.dialogData.question[1].kanji);
+    },
+    function (session, results) {
+        var resultMsg;
+        if (results.response == session.dialogData.question[1].yomi ) {
+            resultMsg = '[答え] あたり！';
+            session.dialogData.rightNum++;
+        } else
+            resultMsg = '[答え] ' + session.dialogData.question[1].yomi;
+        session.send(resultMsg);
+
+        builder.Prompts.text(session, '[3問目] ' + session.dialogData.question[2].kanji);
+    },
+    function (session, results) {
+        var resultMsg;
+        if (results.response == session.dialogData.question[2].yomi ) {
+            resultMsg = '[答え] あたり！';
+            session.dialogData.rightNum++;
+        } else
+            resultMsg = '[答え] ' + session.dialogData.question[2].yomi;
+        session.send(resultMsg);
+
+        builder.Prompts.text(session, '[4問目]' + session.dialogData.question[3].kanji);
+    },
+    function (session, results) {
+        var resultMsg;
+        if (results.response == session.dialogData.question[3].yomi ) {
+            resultMsg = '[答え] あたり！';
+            session.dialogData.rightNum++;
+        } else
+            resultMsg = '[答え] ' + session.dialogData.question[3].yomi;
+        session.send(resultMsg);
+
+        builder.Prompts.text(session, '[5問目]' + session.dialogData.question[4].kanji);
+    },
+    function (session, results) {
+        var resultMsg;
+        if (results.response == session.dialogData.question[4].yomi ) {
+            resultMsg = '[答え] あたり！';
+            session.dialogData.rightNum++;
+        } else
+            resultMsg = '[答え] ' + session.dialogData.question[4].yomi;
+        session.send(resultMsg);
+
+        session.send('[結果] ' + session.dialogData.rightNum + ' 問正解!!');
+        session.endDialog();
+    }
+]).endConversationAction('endKanken','中止',{
+    matches: /^(stop|cancel|中止|終了|終わり|キャンセル)$/i,
+});
+
+
+/**
+ * CSVファイルを読み込む関数
+ *
+ * @link
+ * http://qiita.com/tag1216/items/5a5253de7e1377a24c89
+ * https://github.com/d3/d3-dsv/blob/master/README.md#csvParse
+ */
+var fs = require('fs');
+var d3 = require('d3');
+function csv2Array(filePath){
+    var csv_text = fs.readFileSync(filePath, 'utf-8');
+    var csv = d3.csvParse(csv_text);
+    return csv;
 }
