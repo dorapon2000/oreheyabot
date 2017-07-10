@@ -679,6 +679,9 @@ bot.dialog('/ultraquiz',[
 /**
  * CSVファイルを読み込む関数
  *
+ * @param {string} filepath     - CSVファイルのパス
+ * @return {string} csv         - CSVファイルの中身
+ *
  * @link
  * http://qiita.com/tag1216/items/5a5253de7e1377a24c89
  * https://github.com/d3/d3-dsv/blob/master/README.md#csvParse
