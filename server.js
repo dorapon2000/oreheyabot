@@ -124,6 +124,7 @@ bot.dialog('/', new builder.IntentDialog()
     .matches(/^(oekaki|お絵かき|おえかき)$/i, '/oekaki')
     .matches(/^(kanken|漢検)$/i, '/kanken')
     .matches(/^(quiz|kuizu|クイズ|くいず)$/i, '/ultraquiz')
+    .matches(/^(oemori|mori|((おえ|お絵)?(かきの)?(もり|森)))$/i, '/oemori')
 );
 
 /**
@@ -693,3 +694,83 @@ function csv2Array(filePath){
     var csv = d3.csvParse(csv_text);
     return csv;
 }
+
+/***
+ * お絵森の投稿画像のお題を推理する
+ *
+ *
+ */
+
+bot.dialog('/oemori', [
+    function (session) {
+        session.send('「終了」で問題の途中でも終えられるよ！');
+
+        // 絵を取得する
+        var siteUrl = 'http://casual.hangame.co.jp/oekaki/community.nhn';
+        var pageNum = Math.floor( 1 + Math.random() * 10); //遡るページ数の上限は10
+
+        var client = require('cheerio-httpcli');
+        var result = client.fetchSync (siteUrl, {page: pageNum});
+        if (result.error) {
+            console.log(error);
+            session.endDialog();
+        }
+
+        var picNum = Math.floor( Math.random() * 15 ); // 1ページ15枚のイラスト
+        var thumUrl = result.$('.pic').eq(picNum).find('img').attr('src');
+        var imgUrl = thumUrl.replace(/th_m_/, '');
+
+        var imgMsg = new builder.Message(session)
+        .attachments([{
+            contentType: 'image/jpeg',
+            contentUrl: imgUrl
+        }]);
+        session.send(imgMsg);
+
+        // 絵のお題を取得する
+        var imgPageUrl = 'http://casual.hangame.co.jp/oekaki/' +
+                         result.$('.listitem .pic').eq(picNum).find('a').attr('href');
+
+        result = client.fetchSync(imgPageUrl);
+        if (result.error) {
+            console.log(error);
+            session.endDialog();
+        }
+
+        result.$('span').remove();
+        var odai = result.$('dd[class="theme"]').text();
+        console.log ('[DEBUG] odai = ' + odai);
+        session.dialogData.odai = odai;
+
+    },
+
+    function (session, results) {
+        if ( session.dialogData.odai == results.response.entity) {
+            session.send('あたり！');
+            session.endDialog();
+        }
+    },
+
+    function (session, results) {
+        if ( session.dialogData.odai == results.response.entity) {
+            session.send('あたり！');
+            session.endDialog();
+        }
+    },
+
+    function (session, results) {
+        if ( session.dialogData.odai == results.response.entity) {
+            session.send('あたり！');
+            session.endDialog();
+        }
+    },
+
+    function (session, results) {
+        if ( session.dialogData.odai == results.response.entity) {
+            session.send('あたり！');
+        }
+        session.endDialog();
+    }
+]).endConversationAction('endOemori','お絵森終わり',{
+    matches: /^(stop|cancel|中止|終了|終わり|キャンセル)$/i,
+});
