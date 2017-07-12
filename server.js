@@ -753,7 +753,7 @@ bot.dialog('/oemori', [
             session.endDialog();
             return;
         }
-        builder.Prompts.text(session, '☓');
+        builder.Prompts.text(session, '＊');
     },
 
     function (session, results) {
@@ -762,7 +762,7 @@ bot.dialog('/oemori', [
             session.endDialog();
             return;
         }
-        var hint = Array(session.dialogData.answer.length+1).join('*');
+        var hint = Array(session.dialogData.answer.length+1).join('＊');
         builder.Prompts.text(session, hint);
     },
 
@@ -782,7 +782,7 @@ bot.dialog('/oemori', [
         } else{
             session.send('ざんねん！ ' + session.dialogData.answer);
         }
-        
+
         session.endDialog();
     }
 ]).endConversationAction('endOemori','お絵森終わり',{
