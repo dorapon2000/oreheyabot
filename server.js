@@ -105,6 +105,7 @@ bot.dialog('/help', function(session) {
            '前期 : 前期アニメ一覧の画像を表示\n\n' +
            '漢検 : 漢字読み問題\n\n' +
            'クイズ : ウルトラクイズ3択\n\n' +
+           'お絵森 : お絵森のイラスト当て\n\n' +
            '--\n\n' +
            'まだまだ機能は追加予定。欲しい機能があれば管理者まで。';
     session.send(text);
@@ -118,9 +119,9 @@ bot.dialog('/', new builder.IntentDialog()
     .matches(/^bmi$/i,'/bmi')
     .matches(/^(karapaia|カラパイア|からぱいあ)$/i, '/karapaia')
     .matches(/^(zaeega|ザイーガ|ざいーが)$/i, '/zaeega')
-    .matches(/^(anime|アニメ|あにめ|konki|今期|こんき)(アニメ|あにめ|anime)?$/, '/konki')
-    .matches(/^(jiki|giki|次期|じき)(アニメ|あにめ|anime)?$/, '/jiki')
-    .matches(/^(zenki|前期|ぜんき)(アニメ|あにめ|anime)?$/, '/zenki')
+    .matches(/^(anime|アニメ|あにめ|konki|今期|こんき)(アニメ|あにめ|anime)?$/i, '/konki')
+    .matches(/^(jiki|giki|次期|じき)(アニメ|あにめ|anime)?$/i, '/jiki')
+    .matches(/^(zenki|前期|ぜんき)(アニメ|あにめ|anime)?$/i, '/zenki')
     .matches(/^(oekaki|お絵かき|おえかき)$/i, '/oekaki')
     .matches(/^(kanken|漢検)$/i, '/kanken')
     .matches(/^(quiz|kuizu|クイズ|くいず)$/i, '/ultraquiz')
@@ -474,8 +475,7 @@ function fetchRss(rssUrl, callback) {
 /**
  * 漢字の読み問題を出題する
  *
- * @link
- * http://kanken.jitenon.jp/mondai1z/
+ * @link http://kanken.jitenon.jp/mondai1z/
  */
 bot.dialog('/kanken',[
     function (session) {
@@ -557,8 +557,7 @@ bot.dialog('/kanken',[
 /**
  * ウルトラクイズの問題を出題する
  *
- * @link
- * http://outdoor.geocities.jp/twnfh640/auquiz.chapter3.html
+ * @link http://outdoor.geocities.jp/twnfh640/auquiz.chapter3.html
  */
 bot.dialog('/ultraquiz',[
     function (session) {
@@ -699,7 +698,8 @@ function csv2Array(filePath){
 /***
  * お絵森の投稿画像のお題を推理する
  *
- *
+ * TODO
+ *  - できればひらがなで回答できるようにしたい
  */
 bot.dialog('/oemori', [
     function (session) {
@@ -732,11 +732,12 @@ bot.dialog('/oemori', [
             console.log('[DEBUG] odai = ' + odai);
             session.dialogData.odai = odai; //ユーザーに見せる用
             session.dialogData.answer = (function(odai){
-                a = odai.replace(/（*）$/, '').replace(/・/g, '');
+                a = odai.replace(/（.*）$/, '').replace(/・/g, '');
                 if (a.match(/「.+?」/)) a = a.match(/「(.+?)」/);
                 return a;
-            })(odai); //回答との答え合わせ用
+            })(odai); //回答との照合用
 
+            // session.dialogDataへの代入の前にこの行あるとバグるので注意
             builder.Prompts.text(session, 'この絵が何か答えてね');
 
         })
