@@ -285,6 +285,7 @@ bot.dialog('/zaeega', function (session) {
  * 今期アニメ一覧の画像をudurainfoさんから拝借して表示する。
  * スクレイピングはcheerio-httpcliを使用。
  * @link http://qiita.com/ktty1220/items/e9e42247ede476d04ce2 cheerio-httpcli
+ * @link https://www.npmjs.com/package/cheerio
  *
  * TODO
  *  - 今期、次期、前期は取得できるがもっと幅広く習得できるようにしたい。
@@ -700,75 +701,88 @@ function csv2Array(filePath){
  *
  *
  */
-
 bot.dialog('/oemori', [
     function (session) {
-        session.send('「終了」で問題の途中でも終えられるよ！');
-
         // 絵を取得する
-        var siteUrl = 'http://casual.hangame.co.jp/oekaki/community.nhn';
-        var pageNum = Math.floor( 1 + Math.random() * 10); //遡るページ数の上限は10
-
         var client = require('cheerio-httpcli');
-        var result = client.fetchSync (siteUrl, {page: pageNum});
-        if (result.error) {
-            console.log(error);
-            session.endDialog();
-        }
+        client.fetch (
+            'http://casual.hangame.co.jp/oekaki/community.nhn',
+            {page: Math.floor( 1 + Math.random() * 10)} //遡るページ数の上限は10
+        ).then(function (result){
+            var picNum = Math.floor( Math.random() * 15 ); // 1ページ15枚のイラスト
+            var thumUrl = result.$('.pic').eq(picNum).find('img').attr('src');
+            var imgUrl = thumUrl.replace(/th_m_/, '');
 
-        var picNum = Math.floor( Math.random() * 15 ); // 1ページ15枚のイラスト
-        var thumUrl = result.$('.pic').eq(picNum).find('img').attr('src');
-        var imgUrl = thumUrl.replace(/th_m_/, '');
+            var imgMsg = new builder.Message(session)
+            .attachments([{
+                contentType: 'image/jpeg',
+                contentUrl: imgUrl
+            }]);
+            session.send(imgMsg);
 
-        var imgMsg = new builder.Message(session)
-        .attachments([{
-            contentType: 'image/jpeg',
-            contentUrl: imgUrl
-        }]);
-        session.send(imgMsg);
+            var imgPageUrl = 'http://casual.hangame.co.jp/oekaki/' +
+                             result.$('.listitem .pic').eq(picNum).find('a').attr('href');
+            return client.fetch(imgPageUrl);
 
+        })
         // 絵のお題を取得する
-        var imgPageUrl = 'http://casual.hangame.co.jp/oekaki/' +
-                         result.$('.listitem .pic').eq(picNum).find('a').attr('href');
+        .then(function (result){
+            result.$('span').remove();
+            var odai = result.$('dd[class="theme"]').text();
+            console.log('[DEBUG] odai = ' + odai);
+            session.dialogData.odai = odai; //ユーザーに見せる用
+            session.dialogData.answer = (function(odai){
+                a = odai.replace(/（*）$/, '').replace(/・/g, '');
+                if (a.match(/「.+?」/)) a = a.match(/「(.+?)」/);
+                return a;
+            })(odai); //回答との答え合わせ用
 
-        result = client.fetchSync(imgPageUrl);
-        if (result.error) {
-            console.log(error);
+            builder.Prompts.text(session, 'この絵が何か答えてね');
+
+        })
+        .catch(function (err) {
+            console.log(err);
             session.endDialog();
-        }
-
-        result.$('span').remove();
-        var odai = result.$('dd[class="theme"]').text();
-        console.log ('[DEBUG] odai = ' + odai);
-        session.dialogData.odai = odai;
-
+        })
+        .finally(function (){});
     },
 
     function (session, results) {
-        if ( session.dialogData.odai == results.response.entity) {
+        if ( session.dialogData.answer == results.response) {
             session.send('あたり！');
             session.endDialog();
+            return;
         }
+        builder.Prompts.text(session, '☓');
     },
 
     function (session, results) {
-        if ( session.dialogData.odai == results.response.entity) {
+        if ( session.dialogData.answer == results.response) {
             session.send('あたり！');
             session.endDialog();
+            return;
         }
+        var hint = Array(session.dialogData.answer.length+1).join('*');
+        builder.Prompts.text(session, hint);
     },
 
     function (session, results) {
-        if ( session.dialogData.odai == results.response.entity) {
+        if ( session.dialogData.answer == results.response) {
             session.send('あたり！');
             session.endDialog();
+            return;
         }
+        var hint = session.dialogData.answer.charAt(0) + Array(session.dialogData.answer.length).join('*');
+        builder.Prompts.text(session, hint);
     },
 
     function (session, results) {
-        if ( session.dialogData.odai == results.response.entity) {
+        if ( session.dialogData.answer == results.response) {
             session.send('あたり！');
+        } else{
+            session.send('ざんねん！ ' + session.dialogData.answer);
         }
+        
         session.endDialog();
     }
 ]).endConversationAction('endOemori','お絵森終わり',{
