@@ -753,7 +753,7 @@ bot.dialog('/oemori', [
             session.endDialog();
             return;
         }
-        builder.Prompts.text(session, '＊');
+        builder.Prompts.text(session, 'x');
     },
 
     function (session, results) {
@@ -772,7 +772,7 @@ bot.dialog('/oemori', [
             session.endDialog();
             return;
         }
-        var hint = session.dialogData.answer.charAt(0) + Array(session.dialogData.answer.length).join('*');
+        var hint = session.dialogData.answer.charAt(0) + Array(session.dialogData.answer.length).join('＊');
         builder.Prompts.text(session, hint);
     },
 
