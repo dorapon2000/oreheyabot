@@ -3,6 +3,10 @@ var builder = require('botbuilder');
 var request = require('request');
 var FeedParser = require('feedparser');
 
+// debug用
+// console.log('[DEBUG] ' + util.inspect(obj,false,null));
+var util = require('util');
+
 //=========================================================
 // Bot Setup
 //=========================================================
@@ -98,6 +102,7 @@ bot.dialog('/help', function(session) {
            'ハロー : 挨拶を返してくれる\n\n' +
            'ツンデレ : ツンデレ判定機能(休止中)\n\n' +
            '天気 : 天気予報\n\n' +
+           '地域変更 : 天気予報で表示する地域の変更' +
            'bmi : BMIを計算\n\n' +
            'カラパイア : サイト「カラパイア」の最新記事を5つ表示\n\n' +
            'アニメ or 今期 : 今期アニメ一覧の画像を表示\n\n' +
@@ -116,6 +121,7 @@ bot.dialog('/', new builder.IntentDialog()
     .matches(/^(tundere|ツンデレ|つんでれ)$/i, '/tundere')
     .matches(/^(hello|ハロー|こんにちわ)/i, '/hello')
     .matches(/^(weather|tenki|天気|てんき)$/i, '/weather')
+    .matches(/^(weatherlocation|location|tiiki|地域|地域変更)$/i, '/weatherLocation')
     .matches(/^bmi$/i,'/bmi')
     .matches(/^(karapaia|カラパイア|からぱいあ)$/i, '/karapaia')
     .matches(/^(zaeega|ザイーガ|ざいーが)$/i, '/zaeega')
@@ -201,30 +207,17 @@ bot.dialog('/bmi',[
  * @link http://weather.livedoor.com/weather_hacks/webservice
  */
 bot.dialog('/weather', [
-    function (session) {
-        builder.Prompts.text(session, '[天気予報] 地域を選んでね\n\n' +
-                                      '静岡 = {浜松, 静岡}\n\n' +
-                                      '愛知 = {名古屋}\n\n' +
-                                      '茨城 = {土浦}\n\n' +
-                                      '東京 = {東京}'
-                            );
+    function (session, results, next) {
+        if (!session.userData.weatherLocation){
+            session.beginDialog('/weatherLocation');
+        } else {
+            next();
+        }
     },
     function (session, results) {
-        var locationTable = {
-            '浜松': '220040',
-            'hamamatu': '220040',
-            '静岡': '220010',
-            'sizuoka': '220010',
-            '名古屋': '230010',
-            'nagoya': '230010',
-            '土浦': '080020',
-            'tutiura': '080020',
-            '東京': '130010',
-            'toukyou': '130010'
-        };
         var options = {
             url: 'http://weather.livedoor.com/forecast/webservice/json/v1',
-            qs: {city: locationTable[results.response]},
+            qs: {city: session.userData.weatherLocation},
             json: true
         };
 
@@ -239,7 +232,7 @@ bot.dialog('/weather', [
                              '%s : %s\n\n' + // 今日 : 晴れ
                              '%s : %s\n\n' + // 明日 : 雨
                              '---\n\n' +
-                             '%s',// copyright
+                             '%s', // copyright
                              body.title,
                              publicMonth,
                              publicDay,
@@ -252,13 +245,61 @@ bot.dialog('/weather', [
                              body.copyright.title);
             } else {
                 console.log('error: '+ response.statusCode);
-                sessino.send('status: %d',response.statusCode);
+                session.send('エラーだよ。管理者に連絡してね。');
             }
             session.endDialog();
         });
     }
 
 ]);
+
+/***
+ * 天気予報のロケーションを決める
+ *
+ * 誤った入力は東京にしてしまう。
+ */
+
+bot.dialog('/weatherLocation', [
+    function (session) {
+        builder.Prompts.text(session, '[天気予報] 地域を選んでね\n\n' +
+                                      '静岡 = {浜松, 静岡}\n\n' +
+                                      '愛知 = {名古屋}\n\n' +
+                                      '茨城 = {土浦}\n\n' +
+                                      '東京 = {東京}'
+                            );
+    },
+    function (session, results) {
+        switch (results.response) {
+            case '浜松':
+            case 'hamamatu':
+                session.UserData.weatherLocation = '220040';
+                break;
+            case '静岡':
+            case 'sizuoka':
+                session.userData.weatherLocation = '220010';
+                break;
+            case '名古屋':
+            case 'nagoya':
+                session.userData.weatherLocation = '230010';
+                break;
+            case '土浦':
+            case 'tutiura':
+                session.userData.weatherLocation = '080020';
+                break;
+            case '東京':
+            case 'toukyou':
+                session.userData.weatherLocation = '130010';
+                break;
+            default:
+                session.userData.weatherLocation = '130010';
+                session.send('入力が正しくないよ');
+                break;
+        }
+
+        session.endDialog();
+    }
+]);
+
 
 /**
  * 要望で「カラパイア」の最新記事5つを表示。
