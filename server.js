@@ -344,7 +344,7 @@ bot.dialog('/konki', function (session) {
             return;
         }
 
-        imgUrl = 'http://uzurainfo.han-be.com/' + $('img').attr('src');
+        imgUrl = 'http://uzurainfo.han-be.com/' + $('img').last().attr('src');
         var imgMsg = new builder.Message(session)
         .attachments([{
             contentType: 'image/jpeg',
