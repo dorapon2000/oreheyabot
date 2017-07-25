@@ -739,12 +739,20 @@ function csv2Array(filePath){
 /***
  * お絵森の投稿画像のお題を推理する
  *
+ * @link    kuromoji     https://zeny.io/blog/2016/06/16/kuromoji-js/
+ * @link    kanaToHira   http://qiita.com/mimoe/items/855c112625d39b066c9a
+ *
  * TODO
  *  - できればひらがなで回答できるようにしたい
  */
 bot.dialog('/oemori', [
     function (session) {
         // 絵を取得する
+        var kuromoji = require('kuromoji');
+        var kurobuilder = kuromoji.builder({
+            dicPath: 'node_modules/kuromoji/dict'
+        });
+
         var client = require('cheerio-httpcli');
         client.fetch (
             'http://casual.hangame.co.jp/oekaki/community.nhn',
@@ -769,17 +777,80 @@ bot.dialog('/oemori', [
         // 絵のお題を取得する
         .then(function (result){
             result.$('span').remove();
-            var odai = result.$('dd[class="theme"]').text();
-            console.log('[DEBUG] odai = ' + odai);
-            session.dialogData.odai = odai; //ユーザーに見せる用
-            session.dialogData.answer = (function(odai){
-                a = odai.replace(/（.*）$/, '').replace(/・/g, '');
+            var odaiFull = result.$('dd[class="theme"]').text();
+            console.log('[DEBUG] odai = ' + odaiFull);
+            session.dialogData.odai = odaiFull; //ユーザーに見せる用
+            var odai = (function(odaiFull){
+                // お題によみがなと「」がついてた場合に取り除く
+                a = odaiFull.replace(/（.*）$/, '').replace(/・/g, '');
                 if (a.match(/「.+?」/)) a = a.match(/「(.+?)」/);
                 return a;
-            })(odai); //回答との照合用
+            })(odaiFull);
 
-            // session.dialogDataへの代入の前にこの行あるとバグるので注意
-            builder.Prompts.text(session, 'この絵が何か答えてね');
+            if (isKanaHira(odai)) {
+                console.log('[DEBUG] isKanaHira = ' + isKanaHira(odai))
+                session.dialogData.answer = kanaToHira(odai); //回答との照合用
+                // session.dialogDataへの代入の前にこの行あるとバグるので注意
+                builder.Prompts.text(session, 'この絵が何かひらがなで答えてね');
+                return;
+            }
+
+            // 漢字をひらがなに変換
+            kurobuilder.build(function (err, tokenizer) {
+                // 辞書がなかったりするとここでエラーになります(´・ω・｀)
+                if(err) {
+                    console.log(err);
+                    session.endDialog();
+                    return;
+                }
+
+                var tokens = tokenizer.tokenize(odai);
+                console.dir(tokens);
+
+                answer = '';
+                if (isAbleToHira(tokens)){
+                    for(var i=0; i<tokens.length; i++){
+                        answer += tokens[i].reading;
+                    }
+                    session.dialogData.answer = kanaToHira(answer); //回答との照合用
+                    builder.Prompts.text(session, 'この絵が何かひらがなで答えてね');
+
+                } else {
+                    session.dialogData.answer = odai; //回答との照合用
+                    builder.Prompts.text(session, 'この絵が何か答えてね(英数字漢字含む)');
+                }
+            });
+
+            function isKana(str){
+                if (str.match(/^[\u30A0-\u30FF]+$/)) {
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+
+            function isKanaHira(str) {
+                if (str.match(/^[\u30A0-\u30FF\u30a1-\u30f6]+$/)) {
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+
+            function isAbleToHira(tokens){
+                for(var i=0; i<tokens.length; i++){
+                    if (tokens[i].word_type == 'UNKNOWN')
+                        return false;
+                }
+                return true;
+            }
+
+            function kanaToHira(str) {
+                return str.replace(/[\u30a1-\u30f6]/g, function(match) {
+                    var chr = match.charCodeAt(0) - 0x60;
+                    return String.fromCharCode(chr);
+                });
+            }
 
         })
         .catch(function (err) {
@@ -822,7 +893,7 @@ bot.dialog('/oemori', [
         if ( session.dialogData.answer == results.response) {
             session.send('あたり！');
         } else{
-            session.send('ざんねん！ ' + session.dialogData.answer);
+            session.send('ざんねん！ ' + session.dialogData.odai);
         }
 
         session.endDialog();
