@@ -3,6 +3,12 @@ Available on https://join.skype.com/bot/89548bba-9f9d-4740-8b5a-b879cda0cbb6
 
 ![Sample](https://github.com/dorapon2000/oreheyabot/blob/master/img/oreheyabot_sample.png)
 
+# Usage
+
+```sh
+node server.js
+```
+
 ## System Configuration
 Github -- heroku -- Microsoft Bot Framework -- Skype
 
